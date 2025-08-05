@@ -1,75 +1,112 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import {
-  Home,
-  Calendar,
-  BarChart3,
-  Settings,
-  Car,
-  Users,
-  Building2,
-} from 'lucide-react';
+import { Calendar, Car, BarChart3, Settings, Menu, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-interface SidebarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+type SidebarProps = {
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+};
 
-const navigation = [
-  { id: 'dashboard', label: 'Главный экран', icon: Home },
+const menuItems = [
+  { id: 'daily', label: 'Ежедневная работа', icon: Car },
   { id: 'appointments', label: 'Записи', icon: Calendar },
-  { id: 'reports', label: 'Отчёты', icon: BarChart3 },
+  { id: 'reports', label: 'Отчеты', icon: BarChart3 },
   { id: 'settings', label: 'Настройки', icon: Settings },
 ];
 
-export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export default function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white p-4 shadow-2xl">
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <Car className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+    <>
+      {/* Mobile menu button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden bg-background/80 backdrop-blur-md shadow-ios"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </Button>
+
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`
+          fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-out
+          md:translate-x-0 md:relative md:z-auto
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <div className="h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl border-r border-slate-700/50 shadow-ios-lg">
+          {/* Header */}
+          <div className="p-6 border-b border-slate-700/50">
+            <h1 className="text-2xl font-bold text-white text-gradient tracking-tight">
               Detail Lab
             </h1>
-            <p className="text-xs text-slate-400">Управление автомойкой</p>
+            <p className="text-slate-400 text-sm mt-1">Управление автомойкой</p>
+          </div>
+
+          {/* Navigation */}
+          <nav className="p-4 space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onSectionChange(item.id);
+                    setIsOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left
+                    transition-all duration-200 group relative overflow-hidden
+                    ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-ios-lg scale-105'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-ios hover:scale-105'
+                    }
+                  `}
+                >
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl" />
+                  )}
+
+                  <Icon
+                    className={`h-5 w-5 relative z-10 transition-transform duration-200 ${
+                      isActive ? 'scale-110' : 'group-hover:scale-110'
+                    }`}
+                  />
+                  <span className="font-medium relative z-10">{item.label}</span>
+
+                  {/* Hover effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Footer */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 bg-slate-900/50 backdrop-blur-md">
+            <div className="text-center text-xs text-slate-500">
+              <p>v1.0.0</p>
+              <p className="mt-1">© 2024 Detail Lab</p>
+            </div>
           </div>
         </div>
       </div>
-
-      <nav className="space-y-2">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={cn(
-                'w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200',
-                activeTab === item.id
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
-                  : 'text-slate-300 hover:bg-slate-700/50 hover:text-white hover:scale-102'
-              )}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="mt-auto pt-8">
-        <div className="bg-slate-700/50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 text-xs text-slate-400">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span>Система активна</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

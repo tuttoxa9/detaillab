@@ -3,25 +3,22 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Calendar, Plus, Download, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Download, Edit, Trash2, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import AddCarDialog from './AddCarDialog';
 import EditCarDialog from './EditCarDialog';
 import type { CarWashed, Employee, Appointment } from '@/types';
 import { getCarsWashed, getEmployees, getAppointments, createOrUpdateWorkLog } from '@/lib/firestore';
 import { formatCurrency, formatTime } from '@/lib/salary';
 
-interface DailyWorksheetProps {
-  selectedDate: Date;
-  onDateChange: (date: Date) => void;
-}
-
-export default function DailyWorksheet({ selectedDate, onDateChange }: DailyWorksheetProps) {
+export default function DailyWorksheet() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [carsWashed, setCarsWashed] = useState<CarWashed[]>([]);
@@ -30,6 +27,7 @@ export default function DailyWorksheet({ selectedDate, onDateChange }: DailyWork
   const [loading, setLoading] = useState(true);
 
   const dateString = format(selectedDate, 'yyyy-MM-dd');
+  const displayDate = format(selectedDate, 'd MMMM yyyy', { locale: ru });
 
   useEffect(() => {
     loadData();
@@ -54,242 +52,248 @@ export default function DailyWorksheet({ selectedDate, onDateChange }: DailyWork
     }
   };
 
-  const handleEmployeeChange = async (employeeIds: string[]) => {
-    setSelectedEmployees(employeeIds);
+  const handleSaveWorklog = async () => {
     try {
-      await createOrUpdateWorkLog(dateString, employeeIds);
+      await createOrUpdateWorkLog(dateString, selectedDate, selectedEmployees);
+      alert('Данные о рабочем дне сохранены');
     } catch (error) {
-      console.error('Error updating work log:', error);
+      console.error('Error saving worklog:', error);
+      alert('Ошибка при сохранении данных');
     }
-  };
-
-  const handleCarAdded = () => {
-    loadData();
-  };
-
-  const handleCarUpdated = () => {
-    setEditingCar(null);
-    loadData();
-  };
-
-  const handleAppointmentComplete = (appointment: Appointment) => {
-    // This will open the add car dialog with pre-filled data
-    // Implementation depends on your AddCarDialog component
   };
 
   const totalRevenue = carsWashed.reduce((sum, car) => sum + car.cost, 0);
+  const totalCars = carsWashed.length;
 
-  const getPaymentTypeColor = (type: string) => {
-    switch (type) {
-      case 'cash': return 'bg-green-100 text-green-800';
-      case 'card': return 'bg-blue-100 text-blue-800';
-      case 'organization': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPaymentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'cash': return 'Наличные';
-      case 'card': return 'Карта';
-      case 'organization': return 'Организация';
-      default: return type;
+  const getPaymentBadgeVariant = (paymentType: string) => {
+    switch (paymentType) {
+      case 'cash': return 'default';
+      case 'card': return 'secondary';
+      case 'organization': return 'outline';
+      default: return 'default';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-slate-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Control Panel */}
+      {/* Header with Date Selection */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <CalendarDays className="h-8 w-8 text-blue-600" />
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Рабочий день</h2>
+            <p className="text-slate-600 capitalize">{displayDate}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Input
+            type="date"
+            value={format(selectedDate, 'yyyy-MM-dd')}
+            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            className="w-auto"
+          />
+          <Button variant="gradient" onClick={handleSaveWorklog}>
+            Сохранить день
+          </Button>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Всего автомобилей</p>
+                <p className="text-2xl font-bold text-blue-900">{totalCars}</p>
+              </div>
+              <div className="p-3 bg-blue-200 rounded-xl">
+                <Calendar className="h-6 w-6 text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Общий доход</p>
+                <p className="text-2xl font-bold text-green-900">{formatCurrency(totalRevenue)}</p>
+              </div>
+              <div className="p-3 bg-green-200 rounded-xl">
+                <Download className="h-6 w-6 text-green-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">Записей на день</p>
+                <p className="text-2xl font-bold text-purple-900">{appointments.length}</p>
+              </div>
+              <div className="p-3 bg-purple-200 rounded-xl">
+                <CalendarDays className="h-6 w-6 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">Средний чек</p>
+                <p className="text-2xl font-bold text-orange-900">
+                  {totalCars > 0 ? formatCurrency(totalRevenue / totalCars) : '0 ₽'}
+                </p>
+              </div>
+              <div className="p-3 bg-orange-200 rounded-xl">
+                <Plus className="h-6 w-6 text-orange-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Employee Selection */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Управление сменой</span>
+          <CardTitle className="flex items-center gap-2">
+            <span>Работающие сотрудники</span>
+            <Badge variant="outline">{selectedEmployees.length}</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Дата:</label>
-              <input
-                type="date"
-                value={format(selectedDate, 'yyyy-MM-dd')}
-                onChange={(e) => onDateChange(new Date(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex-2">
-              <label className="block text-sm font-medium mb-2">Сотрудники на смене:</label>
-              <Select
-                value={selectedEmployees.join(',')}
-                onValueChange={(value) => handleEmployeeChange(value ? value.split(',') : [])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите сотрудников" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex space-x-2">
-            <AddCarDialog
-              logId={dateString}
-              onCarAdded={handleCarAdded}
-              trigger={
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Добавить помытую машину
-                </Button>
+        <CardContent>
+          <Select
+            value=""
+            onValueChange={(employeeId) => {
+              if (!selectedEmployees.includes(employeeId)) {
+                setSelectedEmployees([...selectedEmployees, employeeId]);
               }
-            />
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Добавить сотрудника" />
+            </SelectTrigger>
+            <SelectContent>
+              {employees
+                .filter(emp => !selectedEmployees.includes(emp.id))
+                .map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
 
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Экспорт в Word
-            </Button>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {selectedEmployees.map((employeeId) => {
+              const employee = employees.find(e => e.id === employeeId);
+              return (
+                <Badge
+                  key={employeeId}
+                  variant="secondary"
+                  className="gap-2 cursor-pointer"
+                  onClick={() => setSelectedEmployees(selectedEmployees.filter(id => id !== employeeId))}
+                >
+                  {employee?.name}
+                  <Trash2 className="h-3 w-3" />
+                </Badge>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Table */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ведомость ежедневных работ</CardTitle>
-            </CardHeader>
-            <CardContent>
+      {/* Cars Washed */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Помытые автомобили</CardTitle>
+            <AddCarDialog
+              selectedDate={selectedDate}
+              onSuccess={loadData}
+              trigger={
+                <Button variant="gradient" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Добавить автомобиль
+                </Button>
+              }
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {carsWashed.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="mx-auto h-12 w-12 text-slate-400 mb-4" />
+              <h3 className="text-lg font-medium text-slate-600 mb-2">Пока нет данных</h3>
+              <p className="text-slate-500">Добавьте первый помытый автомобиль</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">№</TableHead>
+                  <TableRow className="bg-slate-50">
                     <TableHead>Время</TableHead>
-                    <TableHead>Авто</TableHead>
+                    <TableHead>Автомобиль</TableHead>
                     <TableHead>Услуга</TableHead>
                     <TableHead>Стоимость</TableHead>
                     <TableHead>Оплата</TableHead>
-                    <TableHead className="w-20">Действия</TableHead>
+                    <TableHead>Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {carsWashed.map((car, index) => (
-                    <TableRow key={car.id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-mono">{formatTime(car.time)}</TableCell>
+                  {carsWashed.map((car) => (
+                    <TableRow key={car.id} className="hover:bg-slate-50">
+                      <TableCell className="font-medium">{formatTime(car.time)}</TableCell>
                       <TableCell>{car.carName}</TableCell>
                       <TableCell>{car.service}</TableCell>
                       <TableCell className="font-semibold">{formatCurrency(car.cost)}</TableCell>
                       <TableCell>
-                        <Badge className={getPaymentTypeColor(car.paymentType)}>
-                          {getPaymentTypeLabel(car.paymentType)}
+                        <Badge variant={getPaymentBadgeVariant(car.paymentType)}>
+                          {car.paymentType === 'cash' ? 'Наличные' :
+                           car.paymentType === 'card' ? 'Карта' : 'Организация'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex space-x-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingCar(car)}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingCar(car)}
+                          className="gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Изменить
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
-                  {carsWashed.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                        Нет записей за выбранный день
-                      </TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Upcoming Appointments */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Ближайшие записи</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {appointments.map((appointment) => (
-                  <div key={appointment.id} className="p-3 bg-blue-50 rounded-lg border">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">
-                          {format(appointment.dateTime, 'HH:mm')}
-                        </p>
-                        <p className="text-xs text-gray-600">{appointment.clientName}</p>
-                        <p className="text-xs text-gray-500">{appointment.carInfo}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => handleAppointmentComplete(appointment)}
-                      >
-                        ✓
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {appointments.length === 0 && (
-                  <p className="text-center text-gray-500 py-4">
-                    Нет записей на сегодня
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Daily Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Итоги дня</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-green-600 font-medium">Итого за день</p>
-              <p className="text-2xl font-bold text-green-700">{formatCurrency(totalRevenue)}</p>
             </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium">Количество машин</p>
-              <p className="text-2xl font-bold text-blue-700">{carsWashed.length}</p>
-            </div>
-
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-sm text-purple-600 font-medium">Сотрудников на смене</p>
-              <p className="text-2xl font-bold text-purple-700">{selectedEmployees.length}</p>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -297,8 +301,9 @@ export default function DailyWorksheet({ selectedDate, onDateChange }: DailyWork
       {editingCar && (
         <EditCarDialog
           car={editingCar}
-          onCarUpdated={handleCarUpdated}
-          onClose={() => setEditingCar(null)}
+          open={!!editingCar}
+          onOpenChange={(open) => !open && setEditingCar(null)}
+          onSuccess={loadData}
         />
       )}
     </div>
