@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Plus, Search, Calendar, Filter } from 'lucide-react';
@@ -30,7 +30,7 @@ export default function AppointmentsManager() {
 
   useEffect(() => {
     filterAppointments();
-  }, [appointments, searchTerm, statusFilter]);
+  }, [filterAppointments]);
 
   const loadAppointments = async () => {
     setLoading(true);
@@ -44,7 +44,7 @@ export default function AppointmentsManager() {
     }
   };
 
-  const filterAppointments = () => {
+  const filterAppointments = useCallback(() => {
     let filtered = appointments;
 
     // Filter by status
@@ -64,7 +64,7 @@ export default function AppointmentsManager() {
     }
 
     setFilteredAppointments(filtered);
-  };
+  }, [appointments, searchTerm, statusFilter]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Calendar, Plus, Download, Edit, Trash2, CalendarDays } from 'lucide-react';
@@ -31,9 +31,9 @@ export default function DailyWorksheet() {
 
   useEffect(() => {
     loadData();
-  }, [selectedDate]);
+  }, [loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [employeesData, carsData, appointmentsData] = await Promise.all([
@@ -50,7 +50,7 @@ export default function DailyWorksheet() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, dateString]);
 
   const handleSaveWorklog = async () => {
     try {

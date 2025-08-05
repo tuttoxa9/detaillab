@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { BarChart3, Download, Calculator, Building2 } from 'lucide-react';
@@ -32,13 +32,13 @@ export default function ReportsManager() {
 
   useEffect(() => {
     updateDateRange();
-  }, [period]);
+  }, [updateDateRange]);
 
   useEffect(() => {
     if (settings && employees.length > 0) {
       generateReports();
     }
-  }, [startDate, endDate, settings, employees]);
+  }, [generateReports, settings, employees]);
 
   const loadData = async () => {
     setLoading(true);
@@ -59,7 +59,7 @@ export default function ReportsManager() {
     }
   };
 
-  const updateDateRange = () => {
+  const updateDateRange = useCallback(() => {
     const today = new Date();
 
     switch (period) {
@@ -79,9 +79,9 @@ export default function ReportsManager() {
         // Keep current dates for custom period
         break;
     }
-  };
+  }, [period]);
 
-  const generateReports = async () => {
+  const generateReports = useCallback(async () => {
     try {
       // Get all car washed data for the period
       const promises = [];
@@ -110,7 +110,7 @@ export default function ReportsManager() {
     } catch (error) {
       console.error('Error generating reports:', error);
     }
-  };
+  }, [startDate, endDate, settings, employees, organizations]);
 
   const generateOrganizationReports = (carsWashed: CarWashed[]) => {
     const orgData: { [orgId: string]: { name: string; revenue: number; count: number } } = {};
