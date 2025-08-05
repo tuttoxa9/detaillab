@@ -30,16 +30,6 @@ export default function ReportsManager() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    updateDateRange();
-  }, [updateDateRange]);
-
-  useEffect(() => {
-    if (settings && employees.length > 0) {
-      generateReports();
-    }
-  }, [generateReports, settings, employees]);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -80,6 +70,10 @@ export default function ReportsManager() {
         break;
     }
   }, [period]);
+
+  useEffect(() => {
+    updateDateRange();
+  }, [updateDateRange]);
 
   const generateReports = useCallback(async () => {
     try {
@@ -138,6 +132,12 @@ export default function ReportsManager() {
       ...data,
     }));
   }, [organizations]);
+
+  useEffect(() => {
+    if (settings && employees.length > 0) {
+      generateReports();
+    }
+  }, [generateReports, settings, employees]);
 
   const getTotalRevenue = () => {
     return salaryCalculations.reduce((sum, calc) => sum + calc.totalRevenue, 0);
