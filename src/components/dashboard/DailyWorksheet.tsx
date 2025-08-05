@@ -233,8 +233,8 @@ export default function DailyWorksheet() {
           <div className="flex justify-between items-center">
             <CardTitle>Помытые автомобили</CardTitle>
             <AddCarDialog
-              selectedDate={selectedDate}
-              onSuccess={loadData}
+              logId={dateString}
+              onCarAdded={loadData}
               trigger={
                 <Button variant="gradient" className="gap-2">
                   <Plus className="h-4 w-4" />
