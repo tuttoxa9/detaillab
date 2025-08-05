@@ -98,13 +98,36 @@ export default function ReportsManager() {
         setSalaryCalculations(salaryCalcs);
 
         // Generate organization reports
-        const orgReports = generateOrganizationReports(allCarsWashed);
+        const orgData: { [orgId: string]: { name: string; revenue: number; count: number } } = {};
+
+        allCarsWashed
+          .filter(car => car.paymentType === 'organization' && car.organizationId)
+          .forEach(car => {
+            const orgId = car.organizationId!;
+            const org = organizations.find(o => o.id === orgId);
+
+            if (!orgData[orgId]) {
+              orgData[orgId] = {
+                name: org?.name || 'Неизвестная организация',
+                revenue: 0,
+                count: 0,
+              };
+            }
+
+            orgData[orgId].revenue += car.cost;
+            orgData[orgId].count += 1;
+          });
+
+        const orgReports = Object.entries(orgData).map(([id, data]) => ({
+          id,
+          ...data,
+        }));
         setOrganizationReports(orgReports);
       }
     } catch (error) {
       console.error('Error generating reports:', error);
     }
-  }, [startDate, endDate, settings, employees, generateOrganizationReports]);
+  }, [startDate, endDate, settings, employees, organizations]);
 
   const generateOrganizationReports = useCallback((carsWashed: CarWashed[]) => {
     const orgData: { [orgId: string]: { name: string; revenue: number; count: number } } = {};
