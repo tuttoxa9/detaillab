@@ -29,10 +29,6 @@ export default function DailyWorksheet() {
   const dateString = format(selectedDate, 'yyyy-MM-dd');
   const displayDate = format(selectedDate, 'd MMMM yyyy', { locale: ru });
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -51,6 +47,10 @@ export default function DailyWorksheet() {
       setLoading(false);
     }
   }, [selectedDate, dateString]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSaveWorklog = async () => {
     try {
