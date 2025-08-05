@@ -110,9 +110,9 @@ export default function ReportsManager() {
     } catch (error) {
       console.error('Error generating reports:', error);
     }
-  }, [startDate, endDate, settings, employees, organizations]);
+  }, [startDate, endDate, settings, employees, generateOrganizationReports]);
 
-  const generateOrganizationReports = (carsWashed: CarWashed[]) => {
+  const generateOrganizationReports = useCallback((carsWashed: CarWashed[]) => {
     const orgData: { [orgId: string]: { name: string; revenue: number; count: number } } = {};
 
     carsWashed
@@ -137,7 +137,7 @@ export default function ReportsManager() {
       id,
       ...data,
     }));
-  };
+  }, [organizations]);
 
   const getTotalRevenue = () => {
     return salaryCalculations.reduce((sum, calc) => sum + calc.totalRevenue, 0);
