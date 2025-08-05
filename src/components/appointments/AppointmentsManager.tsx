@@ -145,7 +145,7 @@ export default function AppointmentsManager() {
             </Select>
 
             {/* View Mode Toggle */}
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'list' | 'calendar')}>
               <TabsList>
                 <TabsTrigger value="list">Список</TabsTrigger>
                 <TabsTrigger value="calendar">Календарь</TabsTrigger>

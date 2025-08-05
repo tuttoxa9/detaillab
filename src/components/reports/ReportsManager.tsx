@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Employee, CarWashed, Organization, Settings } from '@/types';
+import type { Employee, CarWashed, Organization, Settings, SalaryCalculation } from '@/types';
 import { getEmployees, getCarsWashed, getOrganizations, getSettings } from '@/lib/firestore';
 import { calculatePeriodSalary, formatCurrency } from '@/lib/salary';
 
@@ -22,8 +22,8 @@ export default function ReportsManager() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [salaryCalculations, setSalaryCalculations] = useState<any[]>([]);
-  const [organizationReports, setOrganizationReports] = useState<any[]>([]);
+  const [salaryCalculations, setSalaryCalculations] = useState<SalaryCalculation[]>([]);
+  const [organizationReports, setOrganizationReports] = useState<{ id: string; name: string; revenue: number; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

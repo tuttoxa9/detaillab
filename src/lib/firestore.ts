@@ -199,11 +199,12 @@ export const updateAppointment = async (
   id: string,
   appointmentData: Partial<Omit<Appointment, 'id' | 'createdAt'>>
 ): Promise<void> => {
-  const updateData: any = { ...appointmentData };
-  if (updateData.dateTime) {
-    updateData.dateTime = Timestamp.fromDate(updateData.dateTime);
+  const updateData = { ...appointmentData } as Record<string, unknown>;
+  if (appointmentData.dateTime) {
+    updateData.dateTime = Timestamp.fromDate(appointmentData.dateTime);
   }
-  await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), updateData);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await updateDoc(doc(db, COLLECTIONS.APPOINTMENTS, id), updateData as any);
 };
 
 export const deleteAppointment = async (id: string): Promise<void> => {

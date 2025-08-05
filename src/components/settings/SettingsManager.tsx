@@ -68,7 +68,7 @@ export default function SettingsManager({ isAuthenticated, onAuthRequired }: Set
     }
   };
 
-  const updateSetting = (key: keyof SettingsType, value: any) => {
+  const updateSetting = (key: keyof SettingsType, value: SettingsType[keyof SettingsType]) => {
     if (settings) {
       setSettings({ ...settings, [key]: value });
     }

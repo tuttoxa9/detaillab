@@ -134,7 +134,7 @@ export default function EditCarDialog({ car, onCarUpdated, onClose }: EditCarDia
             <label className="block text-sm font-medium mb-1">Тип оплаты</label>
             <Select
               value={form.watch('paymentType')}
-              onValueChange={(value) => form.setValue('paymentType', value as any)}
+              onValueChange={(value) => form.setValue('paymentType', value as 'cash' | 'card' | 'organization')}
             >
               <SelectTrigger>
                 <SelectValue />
