@@ -28,10 +28,6 @@ export default function AppointmentsManager() {
     loadAppointments();
   }, []);
 
-  useEffect(() => {
-    filterAppointments();
-  }, [filterAppointments]);
-
   const loadAppointments = async () => {
     setLoading(true);
     try {
@@ -65,6 +61,10 @@ export default function AppointmentsManager() {
 
     setFilteredAppointments(filtered);
   }, [appointments, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    filterAppointments();
+  }, [filterAppointments]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
