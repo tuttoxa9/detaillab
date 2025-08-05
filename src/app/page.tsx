@@ -40,12 +40,7 @@ export default function HomePage() {
       case 'appointments':
         return <AppointmentsManager />;
       case 'reports':
-        return (
-          <ReportsManager
-            isAuthenticated={isAuthenticated}
-            onAuthRequired={handleAuthRequired}
-          />
-        );
+        return <ReportsManager />;
       case 'settings':
         return (
           <SettingsManager
