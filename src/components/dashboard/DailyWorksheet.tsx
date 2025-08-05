@@ -301,9 +301,8 @@ export default function DailyWorksheet() {
       {editingCar && (
         <EditCarDialog
           car={editingCar}
-          open={!!editingCar}
-          onOpenChange={(open) => !open && setEditingCar(null)}
-          onSuccess={loadData}
+          onCarUpdated={loadData}
+          onClose={() => setEditingCar(null)}
         />
       )}
     </div>
