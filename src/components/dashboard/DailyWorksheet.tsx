@@ -54,7 +54,7 @@ export default function DailyWorksheet() {
 
   const handleSaveWorklog = async () => {
     try {
-      await createOrUpdateWorkLog(dateString, selectedDate, selectedEmployees);
+      await createOrUpdateWorkLog(dateString, selectedEmployees);
       alert('Данные о рабочем дне сохранены');
     } catch (error) {
       console.error('Error saving worklog:', error);
